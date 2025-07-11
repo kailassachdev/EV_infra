@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Card,
   CardContent,
@@ -15,6 +16,15 @@ import {
 } from "@/components/ui/chart";
 import { PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Badge } from "./ui/badge";
+import { BASE_URL } from "@/config/api_config";
+
+interface CarbonIntensityData {
+  zone: string;
+  timestamp: string;
+  carbon_intensity: number;
+  classification: string;
+  suggested_price_per_kWh: number;
+}
 
 const energyData = [
   { name: "Solar", value: 45, color: "hsl(var(--chart-1))" },
@@ -70,20 +80,52 @@ const consumptionChartConfig = {
   },
 } satisfies ChartConfig;
 
-const carbonEmissions = 320; // Example value
-
-const getEmissionLevel = (emissions: number) => {
-  if (emissions < 200) return { level: "Low", color: "bg-green-500" };
-  if (emissions < 400)
-    return { level: "Moderately Low", color: "bg-yellow-500" };
-  if (emissions < 600)
-    return { level: "Moderately High", color: "bg-orange-500" };
-  return { level: "High", color: "bg-red-500" };
-};
-
-const emissionInfo = getEmissionLevel(carbonEmissions);
-
 export default function EnergyUsage() {
+  const [carbonData, setCarbonData] = useState<CarbonIntensityData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCarbonData = async () => {
+      try {
+        const response = await fetch(`${BASE_URL}/carbon-intensity`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch carbon intensity data');
+        }
+        const data = await response.json();
+        setCarbonData(data);
+        setIsLoading(false);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'An error occurred');
+        setIsLoading(false);
+      }
+    };
+
+    fetchCarbonData();
+  }, []);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Carbon Emissions &amp; Cost</CardTitle>
+          <CardDescription>Loading data...</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Error</CardTitle>
+          <CardDescription className="text-red-500">{error}</CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
+
   return (
     <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
       <Card className="flex flex-col">
@@ -99,12 +141,12 @@ export default function EnergyUsage() {
               Carbon Emissions (kg CO₂e)
             </p>
             <p className="text-5xl font-bold tracking-tighter">
-              {carbonEmissions}
+              {carbonData?.carbon_intensity}
             </p>
             <Badge
-              className={`${emissionInfo.color} mt-2 text-white hover:${emissionInfo.color}`}
+              className={`bg-${carbonData?.classification === 'Very Low' ? 'green' : 'yellow'}-500 mt-2 text-white`}
             >
-              {emissionInfo.level}
+              {carbonData?.classification}
             </Badge>
           </div>
           <div className="grid grid-cols-2 gap-4 text-center">
@@ -114,7 +156,7 @@ export default function EnergyUsage() {
             </div>
             <div className="p-4 bg-primary/10 rounded-lg border border-primary/50">
               <p className="text-sm text-primary">Discounted Price</p>
-              <p className="text-2xl font-semibold text-primary">$0.11/kWh</p>
+              <p className="text-2xl font-semibold text-primary">₹{carbonData?.suggested_price_per_kWh.toFixed(2)}/kWh</p>
             </div>
           </div>
         </CardContent>

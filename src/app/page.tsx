@@ -2,10 +2,27 @@
 
 import { Header } from "@/components/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import NewLocations from "@/components/new-locations";
 import EnergyUsage from "@/components/energy-usage";
 import MaintenanceSchedule from "@/components/maintenance-schedule";
 import Reports from "@/components/reports";
+import dynamic from 'next/dynamic';
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const NewLocations = dynamic(() => import('@/components/new-locations'), {
+  ssr: false,
+  loading: () => (
+    <Card>
+      <CardHeader>
+        <Skeleton className="h-8 w-48" />
+        <Skeleton className="h-4 w-64" />
+      </CardHeader>
+      <CardContent>
+        <Skeleton className="h-[500px] w-full" />
+      </CardContent>
+    </Card>
+  ),
+});
 
 export default function Home() {
   return (

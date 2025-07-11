@@ -1,10 +1,10 @@
 "use client";
 
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -16,167 +16,90 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "./ui/badge";
-import { Button } from "./ui/button";
-import { Wand2 } from "lucide-react";
-
-const upcomingMaintenance = [
-  {
-    id: "EV-005",
-    task: "Brake Fluid Check",
-    dueDate: "2024-08-15",
-    status: "Scheduled",
-  },
-  {
-    id: "EV-003",
-    task: "Tire Rotation",
-    dueDate: "2024-08-22",
-    status: "Scheduled",
-  },
-  {
-    id: "EV-007",
-    task: "Battery Health Analysis",
-    dueDate: "2024-09-01",
-    status: "Due Soon",
-  },
-];
-
-const historyMaintenance = [
-  {
-    id: "EV-001",
-    task: "Annual Inspection",
-    completedDate: "2024-07-20",
-    cost: "250.00",
-  },
-  {
-    id: "EV-002",
-    task: "Coolant System Flush",
-    completedDate: "2024-07-18",
-    cost: "150.00",
-  },
-  {
-    id: "EV-004",
-    task: "Software Update",
-    completedDate: "2024-06-30",
-    cost: "0.00",
-  },
-];
 
 export default function MaintenanceSchedule() {
+  const [stations, setStations] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [checked, setChecked] = useState<number | null>(null);
+
+  useEffect(() => {
+    const fetchStations = async () => {
+      setLoading(true);
+      setError(null);
+      setStations([]);
+      setChecked(null);
+      try {
+        const res = await fetch("http://127.0.0.1:8000/maintenance/nearby");
+        if (!res.ok) throw new Error("Failed to fetch data");
+        const data = await res.json();
+        setStations(data.results);
+        setChecked(data.stations_checked);
+      } catch (e: any) {
+        setError(e.message || "Unknown error");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchStations();
+  }, []);
+
   return (
-    <div className="grid gap-4 md:gap-8 lg:grid-cols-3">
-      <div className="lg:col-span-2">
-        <Tabs defaultValue="upcoming">
-          <div className="flex items-center">
-            <TabsList>
-              <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-            </TabsList>
+    <div className="grid gap-4 md:gap-8 lg:grid-cols-1">
+      <Card>
+        <CardHeader>
+          <CardTitle>EV Charger Maintenance Status</CardTitle>
+          <CardDescription>
+            AI-powered maintenance predictions for nearby EV charging stations.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {checked !== null && (
+            <span className="text-muted-foreground text-sm mb-2 block">{checked} stations checked</span>
+          )}
+          {loading && <div className="text-muted-foreground mb-2">Loading...</div>}
+          {error && <div className="text-red-500 mb-2">{error}</div>}
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>El_kWh</TableHead>
+                  <TableHead>Duration (hrs)</TableHead>
+                  <TableHead>Needs Maintenance</TableHead>
+                  <TableHead>Reason</TableHead>
+                  <TableHead>Est. Life (months)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {stations.length === 0 && !loading && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="text-center text-muted-foreground">
+                      No data available.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {stations.map((item, idx) => (
+                  <TableRow key={idx} className={item.needs_maintenance ? "bg-red-50" : ""}>
+                    <TableCell>{item.El_kWh}</TableCell>
+                    <TableCell>{item.Duration_hours}</TableCell>
+                    <TableCell>
+                      {item.needs_maintenance ? (
+                        <span className="text-red-600 font-semibold">Yes</span>
+                      ) : (
+                        <span className="text-green-600 font-semibold">No</span>
+                      )}
+                    </TableCell>
+                    <TableCell>{item.reason}</TableCell>
+                    <TableCell>
+                      {item.estimated_life_months !== null ? item.estimated_life_months : "-"}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-          <TabsContent value="upcoming">
-            <Card>
-              <CardHeader>
-                <CardTitle>Upcoming Maintenance</CardTitle>
-                <CardDescription>
-                  Tasks that are scheduled or due soon for vehicles in the
-                  fleet.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Vehicle ID</TableHead>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead className="text-right">Status</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {upcomingMaintenance.map((item) => (
-                      <TableRow key={item.id + item.task}>
-                        <TableCell className="font-medium">{item.id}</TableCell>
-                        <TableCell>{item.task}</TableCell>
-                        <TableCell>{item.dueDate}</TableCell>
-                        <TableCell className="text-right">
-                          <Badge
-                            variant={
-                              item.status === "Due Soon"
-                                ? "destructive"
-                                : "outline"
-                            }
-                          >
-                            {item.status}
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          <TabsContent value="history">
-            <Card>
-              <CardHeader>
-                <CardTitle>Maintenance History</CardTitle>
-                <CardDescription>
-                  A log of all completed maintenance tasks.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Vehicle ID</TableHead>
-                      <TableHead>Task</TableHead>
-                      <TableHead>Completed On</TableHead>
-                      <TableHead className="text-right">Cost</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {historyMaintenance.map((item) => (
-                      <TableRow key={item.id + item.task}>
-                        <TableCell className="font-medium">{item.id}</TableCell>
-                        <TableCell>{item.task}</TableCell>
-                        <TableCell>{item.completedDate}</TableCell>
-                        <TableCell className="text-right">
-                          ${item.cost}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-      <div className="lg:col-span-1">
-        <Card className="h-full flex flex-col">
-          <CardHeader>
-            <CardTitle>AI-Powered Suggestions</CardTitle>
-            <CardDescription>
-              Use AI to analyze sensor data and suggest preventative
-              maintenance.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-grow">
-            <p className="text-sm text-muted-foreground">
-              Based on recent telemetry from EV-007, we've detected anomalous
-              battery temperature fluctuations. It's recommended to schedule a
-              'Battery Health Analysis' soon to prevent potential issues.
-            </p>
-          </CardContent>
-          <CardFooter>
-            <Button className="w-full" variant="outline">
-              <Wand2 className="mr-2 h-4 w-4" />
-              Get New AI Suggestions
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

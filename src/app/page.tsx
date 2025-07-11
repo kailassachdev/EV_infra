@@ -3,7 +3,7 @@
 import { Header } from "@/components/header";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import FleetOverview from "@/components/fleet-overview";
-import ChargingStatus from "@/components/charging-status";
+import EnergyUsage from "@/components/energy-usage";
 import MaintenanceSchedule from "@/components/maintenance-schedule";
 import Reports from "@/components/reports";
 
@@ -15,15 +15,15 @@ export default function Home() {
         <Tabs defaultValue="fleet-overview" className="w-full">
           <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 h-auto md:h-10">
             <TabsTrigger value="fleet-overview">Fleet Overview</TabsTrigger>
-            <TabsTrigger value="charging-status">Charging Status</TabsTrigger>
+            <TabsTrigger value="energy-usage">Energy Usage</TabsTrigger>
             <TabsTrigger value="maintenance-schedule">Maintenance</TabsTrigger>
             <TabsTrigger value="reports">Reports</TabsTrigger>
           </TabsList>
           <TabsContent value="fleet-overview" className="mt-4">
             <FleetOverview />
           </TabsContent>
-          <TabsContent value="charging-status" className="mt-4">
-            <ChargingStatus />
+          <TabsContent value="energy-usage" className="mt-4">
+            <EnergyUsage />
           </TabsContent>
           <TabsContent value="maintenance-schedule" className="mt-4">
             <MaintenanceSchedule />

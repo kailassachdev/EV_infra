@@ -13,7 +13,7 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, Tooltip } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid } from "recharts";
 import { Badge } from "./ui/badge";
 
 const energyData = [
@@ -45,6 +45,31 @@ const chartConfig = {
   },
 } satisfies ChartConfig;
 
+const consumptionData = [
+    { date: "2024-07-01", kWh: 28 }, { date: "2024-07-02", kWh: 30 },
+    { date: "2024-07-03", kWh: 25 }, { date: "2024-07-04", kWh: 32 },
+    { date: "2024-07-05", kWh: 35 }, { date: "2024-07-06", kWh: 38 },
+    { date: "2024-07-07", kWh: 40 }, { date: "2024-07-08", kWh: 37 },
+    { date: "2024-07-09", kWh: 33 }, { date: "2024-07-10", kWh: 31 },
+    { date: "2024-07-11", kWh: 29 }, { date: "2024-07-12", kWh: 34 },
+    { date: "2024-07-13", kWh: 36 }, { date: "2024-07-14", kWh: 41 },
+    { date: "2024-07-15", kWh: 45 }, { date: "2024-07-16", kWh: 42 },
+    { date: "2024-07-17", kWh: 39 }, { date: "2024-07-18", kWh: 43 },
+    { date: "2024-07-19", kWh: 47 }, { date: "2024-07-20", kWh: 50 },
+    { date: "2024-07-21", kWh: 48 }, { date: "2024-07-22", kWh: 46 },
+    { date: "2024-07-23", kWh: 44 }, { date: "2024-07-24", kWh: 49 },
+    { date: "2024-07-25", kWh: 52 }, { date: "2024-07-26", kWh: 55 },
+    { date: "2024-07-27", kWh: 53 }, { date: "2024-07-28", kWh: 51 },
+    { date: "2024-07-29", kWh: 54 }, { date: "2024-07-30", kWh: 58 },
+];
+
+const consumptionChartConfig = {
+  kWh: {
+    label: "kWh",
+    color: "hsl(var(--chart-1))",
+  },
+} satisfies ChartConfig;
+
 const carbonEmissions = 320; // Example value
 
 const getEmissionLevel = (emissions: number) => {
@@ -60,7 +85,7 @@ const emissionInfo = getEmissionLevel(carbonEmissions);
 
 export default function EnergyUsage() {
   return (
-    <div className="grid gap-4 md:gap-8 lg:grid-cols-2">
+    <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
       <Card className="flex flex-col">
         <CardHeader>
           <CardTitle>Carbon Emissions &amp; Cost</CardTitle>
@@ -130,6 +155,48 @@ export default function EnergyUsage() {
           </ChartContainer>
         </CardContent>
       </Card>
+      <Card className="flex flex-col">
+          <CardHeader>
+            <CardTitle>Energy Consumption Trend</CardTitle>
+            <CardDescription>
+              Energy consumed over the last 30 days.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={consumptionChartConfig} className="h-[280px] w-full">
+              <AreaChart
+                data={consumptionData}
+                margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="date"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value) => new Date(value).toLocaleDateString('en-US', { day: 'numeric', month: 'short' })}
+                />
+                 <YAxis
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={(value) => `${value} kWh`}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent indicator="dot" />}
+                />
+                <Area
+                  dataKey="kWh"
+                  type="monotone"
+                  fill="var(--color-kWh)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-kWh)"
+                />
+              </AreaChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
     </div>
   );
 }

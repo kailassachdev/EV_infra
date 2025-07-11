@@ -1,0 +1,14 @@
+# FastAPI and ASGI server
+fastapi
+uvicorn[standard]
+
+# For loading environment variables into Pydantic models
+pydantic-settings
+
+# For making HTTP requests
+requests
+
+# Geospatial libraries
+geojson
+turfpy
+geopy

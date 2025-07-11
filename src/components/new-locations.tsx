@@ -76,11 +76,11 @@ const fleetData = [
   },
 ];
 
-export default function FleetOverview() {
+export default function NewLocations() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Fleet Overview</CardTitle>
+        <CardTitle>New Locations</CardTitle>
         <CardDescription>
           A complete list of all vehicles in the fleet and their current status.
         </CardDescription>

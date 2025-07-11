@@ -110,7 +110,7 @@ export default function EnergyUsage() {
           <div className="grid grid-cols-2 gap-4 text-center">
             <div className="p-4 bg-muted/50 rounded-lg">
               <p className="text-sm text-muted-foreground">Current Price</p>
-              <p className="text-2xl font-semibold">$0.15/kWh</p>
+              <p className="text-2xl font-semibold">₹8.50/kWh</p>
             </div>
             <div className="p-4 bg-primary/10 rounded-lg border border-primary/50">
               <p className="text-sm text-primary">Discounted Price</p>

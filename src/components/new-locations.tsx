@@ -56,10 +56,13 @@ interface ChargingLocation {
 
 // Define different marker icons based on charging speed
 const fastChargingIcon = L.divIcon({
-  html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="red" stroke-width="2" width="24" height="24">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-    <circle cx="12" cy="10" r="3"></circle>
-  </svg>`,
+  html: `
+    <div style="background: #3b82f6; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" width="16" height="16">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    </div>
+  `,
   className: 'charging-marker fast',
   iconSize: [24, 24],
   iconAnchor: [12, 24],
@@ -67,10 +70,13 @@ const fastChargingIcon = L.divIcon({
 });
 
 const mediumChargingIcon = L.divIcon({
-  html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="orange" stroke-width="2" width="24" height="24">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-    <circle cx="12" cy="10" r="3"></circle>
-  </svg>`,
+  html: `
+    <div style="background: #fbbf24; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" width="16" height="16">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    </div>
+  `,
   className: 'charging-marker medium',
   iconSize: [24, 24],
   iconAnchor: [12, 24],
@@ -78,10 +84,13 @@ const mediumChargingIcon = L.divIcon({
 });
 
 const slowChargingIcon = L.divIcon({
-  html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="green" stroke-width="2" width="24" height="24">
-    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-    <circle cx="12" cy="10" r="3"></circle>
-  </svg>`,
+  html: `
+    <div style="background: #22c55e; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" width="16" height="16">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+    </div>
+  `,
   className: 'charging-marker slow',
   iconSize: [24, 24],
   iconAnchor: [12, 24],
@@ -163,10 +172,21 @@ export default function NewLocations() {
 
       // Add circle for search radius
       L.circle([centerLocation.Latitude, centerLocation.Longitude], {
-        color: 'blue',
-        fillColor: '#30f',
-        fillOpacity: 0.1,
-        radius: 3000 // 3km radius
+        color: '#3b82f6', // Tailwind blue-500
+        weight: 2,
+        opacity: 0.5,
+        dashArray: '6 6', // Dashed border
+        fillColor: '#3b82f6',
+        fillOpacity: 0.08, // Softer fill
+        radius: 3000
+      }).addTo(mapRef.current);
+
+      // Add this before the main circle for a glow effect
+      L.circle([centerLocation.Latitude, centerLocation.Longitude], {
+        color: null,
+        fillColor: '#3b82f6',
+        fillOpacity: 0.04,
+        radius: 3500
       }).addTo(mapRef.current);
 
       // Add markers for each location
@@ -324,7 +344,9 @@ export default function NewLocations() {
 
                 <div className="mt-2 space-y-1">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
+                    <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-green-100">
+                      <MapPin className="h-5 w-5 text-green-600" />
+                    </span>
                     <span>
                       {selectedLocation.AddressInfo.AddressLine1}
                       {selectedLocation.AddressInfo.AddressLine2
@@ -334,7 +356,9 @@ export default function NewLocations() {
                     </span>
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <Zap className="h-4 w-4" />
+                    <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-blue-100">
+                      <Zap className="h-5 w-5 text-blue-600" />
+                    </span>
                     <span>{selectedLocation.UsageCost}</span>
                   </div>
                 </div>
@@ -366,7 +390,9 @@ export default function NewLocations() {
 
                 {selectedLocation.GeneralComments && (
                   <div className="mt-2 text-sm text-muted-foreground flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
+                    <span className="inline-flex items-center justify-center h-8 w-8 rounded-full bg-gray-100">
+                      <Clock className="h-5 w-5 text-gray-600" />
+                    </span>
                     {selectedLocation.GeneralComments}
                   </div>
                 )}

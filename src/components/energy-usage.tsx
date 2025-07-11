@@ -14,11 +14,13 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, Legend } from "recharts";
+import { PieChart, Pie, Cell, Tooltip, AreaChart, Area, XAxis, YAxis, CartesianGrid, BarChart, Bar, Legend, Sector } from "recharts";
 import { Badge } from "./ui/badge";
 import { BASE_URL } from "@/config/api_config";
 import Papa from "papaparse";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+import { getEnergyMixData } from "@/services/gemini";
 
 interface MonthlyData {
   date: string;
@@ -46,6 +48,12 @@ interface EnergyData {
 const KG_CO2_PER_TREE_PER_YEAR = 22;
 // Baseline carbon intensity for tree calculation (in tons CO2)
 const BASELINE_CO2_YEARLY = 950; // Using 2020's non-renewable value as baseline
+
+interface EnergyMixData {
+  name: string;
+  value: number;
+  color: string;
+}
 
 const energyData = [
   { name: "Solar", value: 45, color: "hsl(var(--chart-1))" },
@@ -101,8 +109,47 @@ const consumptionChartConfig = {
   },
 } satisfies ChartConfig;
 
+// Enhanced color scheme with gradients
+const COLORS = {
+  Solar: ["#ffd700", "#ff8c00"],    // Gold to Orange
+  Wind: ["#87ceeb", "#4169e1"],     // Sky Blue to Royal Blue
+  Hydro: ["#00ffff", "#0000ff"],    // Cyan to Blue
+  Geothermal: ["#ff4d4d", "#8b0000"] // Bright Red to Dark Red
+};
+
+const RADIAN = Math.PI / 180;
+const renderActiveShape = (props: any) => {
+  const {
+    cx, cy, innerRadius, outerRadius, startAngle, endAngle,
+    fill, payload, percent, value, name
+  } = props;
+
+  return (
+    <g>
+      <text x={cx} y={cy} dy={-20} textAnchor="middle" className="text-lg font-bold">
+        {name}
+      </text>
+      <text x={cx} y={cy} dy={10} textAnchor="middle" className="text-2xl font-bold">
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+      <Sector
+        cx={cx}
+        cy={cy}
+        innerRadius={innerRadius}
+        outerRadius={outerRadius + 8}
+        startAngle={startAngle}
+        endAngle={endAngle}
+        fill={fill}
+        opacity={0.8}
+      />
+    </g>
+  );
+};
+
 export default function EnergyUsage() {
+  const [activeIndex, setActiveIndex] = useState(0);
   const [carbonData, setCarbonData] = useState<CarbonIntensityData | null>(null);
+  const [energyMixData, setEnergyMixData] = useState<EnergyMixData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
@@ -129,15 +176,26 @@ export default function EnergyUsage() {
     }
   };
 
+  const onPieEnter = (_: any, index: number) => {
+    setActiveIndex(index);
+  };
+
   useEffect(() => {
-    const fetchCarbonData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/carbon-intensity`);
-        if (!response.ok) {
+        // Fetch both carbon intensity and energy mix data
+        const [carbonResponse, mixData] = await Promise.all([
+          fetch(`${BASE_URL}/carbon-intensity`),
+          getEnergyMixData()
+        ]);
+
+        if (!carbonResponse.ok) {
           throw new Error('Failed to fetch carbon intensity data');
         }
-        const data = await response.json();
-        setCarbonData(data);
+
+        const carbonData = await carbonResponse.json();
+        setCarbonData(carbonData);
+        setEnergyMixData(mixData);
         setIsLoading(false);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred');
@@ -145,7 +203,7 @@ export default function EnergyUsage() {
       }
     };
 
-    fetchCarbonData();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -272,7 +330,7 @@ export default function EnergyUsage() {
               {carbonData?.carbon_intensity}
             </p>
             <Badge
-              className={`bg-${carbonData?.classification === 'Very Low' ? 'green' : 'yellow'}-500 mt-2 text-white`}
+              className={`bg-${carbonData?.classification === 'Very Low' ? 'green' : 'yellow'}-500 mt-2 text-black`}
             >
               {carbonData?.classification}
             </Badge>
@@ -289,42 +347,76 @@ export default function EnergyUsage() {
           </div>
         </CardContent>
       </Card>
-      <Card>
+
+      <Card className="bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
         <CardHeader>
-          <CardTitle>Renewable Energy Mix</CardTitle>
-          <CardDescription>
-            Distribution of renewable energy sources for charging.
+          <CardTitle className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-foreground bg-clip-text text-transparent">
+            Renewable Energy Mix
+          </CardTitle>
+          <CardDescription className="text-base">
+            Real-time distribution of renewable energy sources
           </CardDescription>
         </CardHeader>
-        <CardContent className="flex items-center justify-center">
+        <CardContent className="flex items-center justify-center p-6">
           <ChartContainer
             config={chartConfig}
-            className="h-[280px] w-full max-w-[280px]"
+            className="h-[350px] w-full max-w-[350px]"
           >
-            <PieChart accessibilityLayer>
+            <PieChart>
+              <defs>
+                {energyMixData.map((entry, index) => (
+                  <linearGradient key={`gradient-${index}`} id={`gradient-${entry.name}`} x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0%" stopColor={COLORS[entry.name as keyof typeof COLORS][0]} />
+                    <stop offset="100%" stopColor={COLORS[entry.name as keyof typeof COLORS][1]} />
+                  </linearGradient>
+                ))}
+              </defs>
               <Tooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
+                content={({ active, payload }) => {
+                  if (active && payload && payload.length) {
+                    const data = payload[0];
+                    return (
+                      <div className="rounded-xl bg-white/90 backdrop-blur-sm p-3 shadow-lg border border-slate-200 dark:bg-slate-900/90 dark:border-slate-700">
+                        <p className="text-lg font-semibold">{data.name}</p>
+                        <p className="text-base text-muted-foreground">
+                          {data.value}% of total
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                }}
               />
               <Pie
-                data={energyData}
+                data={energyMixData}
                 dataKey="value"
                 nameKey="name"
                 cx="50%"
                 cy="50%"
-                outerRadius={120}
+                outerRadius={140}
                 innerRadius={80}
-                paddingAngle={5}
-                labelLine={false}
+                paddingAngle={8}
+                activeIndex={activeIndex}
+                activeShape={renderActiveShape}
+                onMouseEnter={onPieEnter}
+                animationBegin={0}
+                animationDuration={1500}
+                animationEasing="ease-out"
               >
-                {energyData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
+                {energyMixData.map((entry, index) => (
+                  <Cell
+                    key={`cell-${index}`}
+                    fill={`url(#gradient-${entry.name})`}
+                    strokeWidth={2}
+                    stroke="white"
+                  />
                 ))}
               </Pie>
             </PieChart>
           </ChartContainer>
         </CardContent>
       </Card>
+
       <Card className="flex flex-col">
           <CardHeader className="space-y-4">
             <div className="flex items-center justify-between">

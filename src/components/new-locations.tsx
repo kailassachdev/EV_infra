@@ -7,40 +7,39 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import L, { icon, Map } from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { icon } from "leaflet";
 import { MapPin } from "lucide-react";
-import { useId } from "react";
+import { useEffect, useRef } from "react";
 
 const locations = [
   {
     name: "Liberty Plaza Charging Hub",
-    position: [40.7112, -74.0123],
+    position: [40.7112, -74.0123] as L.LatLngExpression,
   },
   {
     name: "Grand Central Station",
-    position: [40.7527, -73.9772],
+    position: [40.7527, -73.9772] as L.LatLngExpression,
   },
   {
     name: "Brooklyn Bridge Park",
-    position: [40.705, -73.9954],
+    position: [40.705, -73.9954] as L.LatLngExpression,
   },
   {
     name: "Times Square Supercharger",
-    position: [40.758, -73.9855],
+    position: [40.758, -73.9855] as L.LatLngExpression,
   },
   {
     name: "JFK Airport Station",
-    position: [40.6413, -73.7781],
+    position: [40.6413, -73.7781] as L.LatLngExpression,
   },
   {
     name: "Wall Street Charging Point",
-    position: [40.7061, -74.0088],
+    position: [40.7061, -74.0088] as L.LatLngExpression,
   },
   {
     name: "Queens Depot",
-    position: [40.742, -73.8448],
+    position: [40.742, -73.8448] as L.LatLngExpression,
   },
 ];
 
@@ -53,7 +52,45 @@ const customIcon = icon({
 });
 
 export default function NewLocations() {
-  const mapId = useId();
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<Map | null>(null);
+
+  useEffect(() => {
+    if (mapContainerRef.current && !mapRef.current) {
+      // Initialize map
+      mapRef.current = L.map(mapContainerRef.current).setView(
+        [40.7128, -74.006],
+        12
+      );
+
+      // Add tile layer
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        attribution:
+          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      }).addTo(mapRef.current);
+
+      // Add markers
+      locations.forEach((location) => {
+        L.marker(location.position, { icon: customIcon })
+          .addTo(mapRef.current!)
+          .bindPopup(
+            `<div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg><span class="font-semibold">${location.name}</span></div>`, {
+              closeButton: false,
+              minWidth: 0,
+            }
+          );
+      });
+    }
+
+    // Cleanup function
+    return () => {
+      if (mapRef.current) {
+        mapRef.current.remove();
+        mapRef.current = null;
+      }
+    };
+  }, []); // Empty dependency array ensures this runs only once on mount and cleanup on unmount
+
   return (
     <Card>
       <CardHeader>
@@ -63,33 +100,10 @@ export default function NewLocations() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div key={mapId} className="h-[500px] w-full rounded-lg overflow-hidden border">
-           <MapContainer
-            center={[40.7128, -74.006]}
-            zoom={12}
-            scrollWheelZoom={false}
-            className="h-full w-full"
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {locations.map((location) => (
-              <Marker
-                key={location.name}
-                position={location.position as [number, number]}
-                icon={customIcon}
-              >
-                <Popup>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-primary" />
-                    <span className="font-semibold">{location.name}</span>
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
-        </div>
+        <div
+          ref={mapContainerRef}
+          className="h-[500px] w-full rounded-lg overflow-hidden border"
+        />
       </CardContent>
     </Card>
   );

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -53,16 +52,6 @@ const customIcon = icon({
 });
 
 export default function NewLocations() {
-  const [mapId, setMapId] = useState('map');
-
-  useEffect(() => {
-    // A simple way to force a re-render of the map container in development
-    // to avoid the "Map container is already initialized" error.
-    if (process.env.NODE_ENV === 'development') {
-      setMapId(`map-${Math.random()}`);
-    }
-  }, []);
-
   return (
     <Card>
       <CardHeader>
@@ -72,7 +61,7 @@ export default function NewLocations() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div key={mapId} className="h-[500px] w-full rounded-lg overflow-hidden border">
+        <div className="h-[500px] w-full rounded-lg overflow-hidden border">
           <MapContainer
             center={[40.7128, -74.006]}
             zoom={12}

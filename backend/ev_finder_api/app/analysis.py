@@ -10,7 +10,7 @@ from turfpy.measurement import area, centroid, point_to_line_distance
 from geopy.distance import geodesic
 
 # Analysis Parameters
-SEARCH_RADIUS_M = 2000
+SEARCH_RADIUS_M = 5000
 MIN_AREA_M2 = 50
 MAX_DISTANCE_TO_POWER_M = 200
 MAX_DISTANCE_TO_ROAD_M = 100

@@ -7,10 +7,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { icon } from "leaflet";
 import { MapPin } from "lucide-react";
+import { useId } from "react";
 
 const locations = [
   {
@@ -52,6 +53,7 @@ const customIcon = icon({
 });
 
 export default function NewLocations() {
+  const mapId = useId();
   return (
     <Card>
       <CardHeader>
@@ -61,9 +63,32 @@ export default function NewLocations() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="h-[500px] w-full rounded-lg overflow-hidden border">
-            {/* The MapContainer has been intentionally removed to prevent re-initialization errors during hot-reloading in development.
-                The necessary map components like TileLayer and Marker are left here to be used when the map is properly configured. */}
+        <div key={mapId} className="h-[500px] w-full rounded-lg overflow-hidden border">
+           <MapContainer
+            center={[40.7128, -74.006]}
+            zoom={12}
+            scrollWheelZoom={false}
+            className="h-full w-full"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {locations.map((location) => (
+              <Marker
+                key={location.name}
+                position={location.position as [number, number]}
+                icon={customIcon}
+              >
+                <Popup>
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-primary" />
+                    <span className="font-semibold">{location.name}</span>
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
         </div>
       </CardContent>
     </Card>

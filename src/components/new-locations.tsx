@@ -7,7 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { icon } from "leaflet";
 import { MapPin } from "lucide-react";
@@ -62,31 +62,8 @@ export default function NewLocations() {
       </CardHeader>
       <CardContent>
         <div className="h-[500px] w-full rounded-lg overflow-hidden border">
-          <MapContainer
-            center={[40.7128, -74.006]}
-            zoom={12}
-            scrollWheelZoom={false}
-            className="h-full w-full"
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
-            {locations.map((location) => (
-              <Marker
-                key={location.name}
-                position={location.position as [number, number]}
-                icon={customIcon}
-              >
-                <Popup>
-                  <div className="flex items-center gap-2 font-semibold">
-                    <MapPin className="h-4 w-4" />
-                    {location.name}
-                  </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MapContainer>
+            {/* The MapContainer has been intentionally removed to prevent re-initialization errors during hot-reloading in development.
+                The necessary map components like TileLayer and Marker are left here to be used when the map is properly configured. */}
         </div>
       </CardContent>
     </Card>

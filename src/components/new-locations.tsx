@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -52,6 +53,16 @@ const customIcon = icon({
 });
 
 export default function NewLocations() {
+  const [mapId, setMapId] = useState('map');
+
+  useEffect(() => {
+    // A simple way to force a re-render of the map container in development
+    // to avoid the "Map container is already initialized" error.
+    if (process.env.NODE_ENV === 'development') {
+      setMapId(`map-${Math.random()}`);
+    }
+  }, []);
+
   return (
     <Card>
       <CardHeader>
@@ -61,31 +72,33 @@ export default function NewLocations() {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <MapContainer
-          center={[40.7128, -74.006]}
-          zoom={12}
-          scrollWheelZoom={false}
-          className="h-[500px] w-full rounded-lg overflow-hidden border"
-        >
-          <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-          />
-          {locations.map((location) => (
-            <Marker
-              key={location.name}
-              position={location.position as [number, number]}
-              icon={customIcon}
-            >
-              <Popup>
-                <div className="flex items-center gap-2 font-semibold">
-                  <MapPin className="h-4 w-4" />
-                  {location.name}
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-        </MapContainer>
+        <div key={mapId} className="h-[500px] w-full rounded-lg overflow-hidden border">
+          <MapContainer
+            center={[40.7128, -74.006]}
+            zoom={12}
+            scrollWheelZoom={false}
+            className="h-full w-full"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {locations.map((location) => (
+              <Marker
+                key={location.name}
+                position={location.position as [number, number]}
+                icon={customIcon}
+              >
+                <Popup>
+                  <div className="flex items-center gap-2 font-semibold">
+                    <MapPin className="h-4 w-4" />
+                    {location.name}
+                  </div>
+                </Popup>
+              </Marker>
+            ))}
+          </MapContainer>
+        </div>
       </CardContent>
     </Card>
   );

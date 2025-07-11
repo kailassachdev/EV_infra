@@ -1,80 +1,55 @@
 "use client";
 
 import {
-  BatteryCharging,
-  MapPin,
-  ParkingCircle,
-  Car,
-} from "lucide-react";
-import { Badge } from "@/components/ui/badge";
-import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
+import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import "leaflet/dist/leaflet.css";
+import { icon } from "leaflet";
+import { MapPin } from "lucide-react";
 
-const fleetData = [
+const locations = [
   {
-    id: "EV-001",
-    location: "Liberty Plaza Charging Hub",
-    battery: 88,
-    status: "Charging",
-    icon: <BatteryCharging className="h-4 w-4 text-accent" />,
+    name: "Liberty Plaza Charging Hub",
+    position: [40.7112, -74.0123],
   },
   {
-    id: "EV-002",
-    location: "Grand Central Station",
-    battery: 100,
-    status: "Idle",
-    icon: <ParkingCircle className="h-4 w-4 text-gray-500" />,
+    name: "Grand Central Station",
+    position: [40.7527, -73.9772],
   },
   {
-    id: "EV-003",
-    location: "En route to Brooklyn Bridge",
-    battery: 45,
-    status: "In-Transit",
-    icon: <Car className="h-4 w-4 text-blue-500" />,
+    name: "Brooklyn Bridge Park",
+    position: [40.705, -73.9954],
   },
   {
-    id: "EV-004",
-    location: "Times Square Supercharger",
-    battery: 95,
-    status: "Charging",
-    icon: <BatteryCharging className="h-4 w-4 text-accent" />,
+    name: "Times Square Supercharger",
+    position: [40.758, -73.9855],
   },
   {
-    id: "EV-005",
-    location: "JFK Airport Station",
-    battery: 22,
-    status: "In-Transit",
-    icon: <Car className="h-4 w-4 text-blue-500" />,
+    name: "JFK Airport Station",
+    position: [40.6413, -73.7781],
   },
   {
-    id: "EV-006",
-    location: "Wall Street Charging Point",
-    battery: 100,
-    status: "Idle",
-    icon: <ParkingCircle className="h-4 w-4 text-gray-500" />,
+    name: "Wall Street Charging Point",
+    position: [40.7061, -74.0088],
   },
   {
-    id: "EV-007",
-    location: "Servicing at Queens Depot",
-    battery: 70,
-    status: "Maintenance",
-    icon: <BatteryCharging className="h-4 w-4 text-yellow-500" />,
+    name: "Queens Depot",
+    position: [40.742, -73.8448],
   },
 ];
+
+const customIcon = icon({
+  iconUrl:
+    "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0IiBmaWxsPSJub25lIiBzdHJva2U9ImhzbCh2YXIoLS1wcmltYXJ5KSkiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS1tYXAtcGluIj48cGF0aCBkPSJNMjAgMTBhOCA4IDAgMSAwLTE2IDAgOCA4IDAgMCAwIDE2IDBaIi8+PHBhdGggZD0iTTIyIDExYTggOCAwIDEgMS0uNSA0TTIgMTJhOCA4IDAgMCAxIDMuNS02LjgiLz48L3N2Zz4=",
+  iconSize: [24, 24],
+  iconAnchor: [12, 24],
+  popupAnchor: [0, -24],
+});
 
 export default function NewLocations() {
   return (
@@ -82,66 +57,37 @@ export default function NewLocations() {
       <CardHeader>
         <CardTitle>New Locations</CardTitle>
         <CardDescription>
-          A complete list of all vehicles in the fleet and their current status.
+          Map of new EV charging station locations.
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Vehicle ID</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead className="text-center">Battery Level</TableHead>
-              <TableHead className="text-right">Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {fleetData.map((vehicle) => (
-              <TableRow key={vehicle.id}>
-                <TableCell className="font-medium">{vehicle.id}</TableCell>
-                <TableCell>
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>{vehicle.location}</span>
+        <div className="h-[500px] w-full rounded-lg overflow-hidden border">
+          <MapContainer
+            center={[40.7128, -74.006]}
+            zoom={12}
+            scrollWheelZoom={false}
+            className="h-full w-full"
+          >
+            <TileLayer
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            />
+            {locations.map((location) => (
+              <Marker
+                key={location.name}
+                position={location.position as [number, number]}
+                icon={customIcon}
+              >
+                <Popup>
+                  <div className="flex items-center gap-2 font-semibold">
+                    <MapPin className="h-4 w-4" />
+                    {location.name}
                   </div>
-                </TableCell>
-                <TableCell>
-                  <div className="flex items-center justify-center gap-2">
-                    <Progress
-                      value={vehicle.battery}
-                      className="w-24"
-                      aria-label={`${vehicle.battery}% battery`}
-                    />
-                    <span className="text-muted-foreground">
-                      {vehicle.battery}%
-                    </span>
-                  </div>
-                </TableCell>
-                <TableCell className="text-right">
-                  <Badge
-                    variant={
-                      vehicle.status === "In-Transit" ? "outline" : "default"
-                    }
-                    className={`capitalize ${
-                      vehicle.status === "Charging"
-                        ? "bg-accent text-accent-foreground"
-                        : ""
-                    } ${
-                      vehicle.status === "Maintenance"
-                        ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                        : ""
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      {vehicle.icon}
-                      {vehicle.status}
-                    </div>
-                  </Badge>
-                </TableCell>
-              </TableRow>
+                </Popup>
+              </Marker>
             ))}
-          </TableBody>
-        </Table>
+          </MapContainer>
+        </div>
       </CardContent>
     </Card>
   );

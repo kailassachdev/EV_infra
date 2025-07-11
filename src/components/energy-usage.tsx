@@ -150,9 +150,17 @@ export default function EnergyUsage() {
 
         const carbonData = await carbonResponse.json();
         setCarbonData(carbonData);
-        setEnergyMixData(mixData);
+        // Ensure mixData is an array and has the correct structure
+        if (Array.isArray(mixData) && mixData.length > 0) {
+          setEnergyMixData(mixData);
+        } else {
+          console.error('Invalid energy mix data:', mixData);
+          setEnergyMixData(energyData); // Use default data if invalid
+        }
         setIsLoading(false);
       } catch (err) {
+        console.error('Error fetching data:', err);
+        setEnergyMixData(energyData); // Use default data on error
         setError(err instanceof Error ? err.message : 'An error occurred');
         setIsLoading(false);
       }
@@ -161,7 +169,8 @@ export default function EnergyUsage() {
     fetchData();
   }, []);
 
-  if (isLoading) {
+  // Add safety check for rendering
+  if (isLoading || !energyMixData.length) {
     return (
       <Card>
         <CardHeader>
@@ -235,12 +244,18 @@ export default function EnergyUsage() {
           >
             <PieChart>
               <defs>
-                {energyMixData.map((entry, index) => (
-                  <linearGradient key={`gradient-${index}`} id={`gradient-${entry.name}`} x1="0" y1="0" x2="1" y2="1">
-                    <stop offset="0%" stopColor={COLORS[entry.name as keyof typeof COLORS][0]} />
-                    <stop offset="100%" stopColor={COLORS[entry.name as keyof typeof COLORS][1]} />
-                  </linearGradient>
-                ))}
+                {energyMixData.map((entry, index) => {
+                  // Add null check and type safety for COLORS access
+                  const sourceColors = COLORS[entry.name as keyof typeof COLORS];
+                  if (!sourceColors) return null;
+                  
+                  return (
+                    <linearGradient key={`gradient-${index}`} id={`gradient-${entry.name}`} x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stopColor={sourceColors[0]} />
+                      <stop offset="100%" stopColor={sourceColors[1]} />
+                    </linearGradient>
+                  );
+                })}
               </defs>
               <Tooltip
                 content={({ active, payload }) => {
@@ -274,14 +289,15 @@ export default function EnergyUsage() {
                 animationDuration={1500}
                 animationEasing="ease-out"
               >
-                {energyMixData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={`url(#gradient-${entry.name})`}
-                    strokeWidth={2}
-                    stroke="white"
-                  />
-                ))}
+                {energyMixData.map((entry, index) => {
+                  const sourceColors = COLORS[entry.name as keyof typeof COLORS];
+                  return (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={sourceColors ? `url(#gradient-${entry.name})` : entry.color} 
+                    />
+                  );
+                })}
               </Pie>
             </PieChart>
           </ChartContainer>

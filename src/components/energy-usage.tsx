@@ -369,42 +369,51 @@ export default function EnergyUsage() {
                   <Leaf className="w-5 h-5 text-green-600" />
                   <CardTitle className="text-lg">Energy Mix</CardTitle>
                 </div>
+                <CardDescription className="text-sm text-gray-600">
+                  Current distribution of renewable energy sources in your region
+                </CardDescription>
               </CardHeader>
               <CardContent className="flex items-center justify-center">
                 <ChartContainer config={chartConfig} className="h-[200px] w-full">
-                  <PieChart>
-                    <Tooltip
-                      content={({ active, payload }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0];
-                          return (
-                            <div className="bg-white p-2 shadow-lg border rounded-lg">
-                              <p className="font-medium">{data.name}</p>
-                              <p className="text-sm text-gray-600">{data.value}%</p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                    <Pie
-                      data={energyMixData}
-                      dataKey="value"
-                      nameKey="name"
-                      cx="50%"
-                      cy="50%"
-                      outerRadius={70}
-                      innerRadius={40}
-                      paddingAngle={3}
-                      activeIndex={activeIndex}
-                      activeShape={renderActiveShape}
-                      onMouseEnter={onPieEnter}
-                    >
-                      {energyMixData.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS]} />
-                      ))}
-                    </Pie>
-                  </PieChart>
+                  {energyMixData.length > 0 ? (
+                    <PieChart>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0];
+                            return (
+                              <div className="bg-white p-2 shadow-lg border rounded-lg">
+                                <p className="font-medium">{data.name}</p>
+                                <p className="text-sm text-gray-600">{data.value}%</p>
+                              </div>
+                            );
+                          }
+                          return null;
+                        }}
+                      />
+                      <Pie
+                        data={energyMixData}
+                        dataKey="value"
+                        nameKey="name"
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={70}
+                        innerRadius={40}
+                        paddingAngle={3}
+                        activeIndex={activeIndex}
+                        activeShape={renderActiveShape}
+                        onMouseEnter={onPieEnter}
+                      >
+                        {energyMixData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={COLORS[entry.name as keyof typeof COLORS]} />
+                        ))}
+                      </Pie>
+                    </PieChart>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+                    </div>
+                  )}
                 </ChartContainer>
               </CardContent>
             </Card>
@@ -427,6 +436,9 @@ export default function EnergyUsage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <CardDescription className="text-sm text-gray-600">
+                  Historical CO₂ emissions comparison between renewable and non-renewable sources
+                </CardDescription>
                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 w-fit">
                   {treesSaved} trees equivalent
                 </Badge>

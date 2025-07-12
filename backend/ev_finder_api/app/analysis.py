@@ -4,13 +4,14 @@ import asyncio
 import httpx # Use httpx for async requests
 import sys
 from typing import List, Dict
+import time
 
 from geojson import Polygon, Feature, LineString
 from turfpy.measurement import area, centroid, point_to_line_distance
 from geopy.distance import geodesic
 
 # Analysis Parameters
-SEARCH_RADIUS_M = 5000
+SEARCH_RADIUS_M = 10000
 MIN_AREA_M2 = 50
 MAX_DISTANCE_TO_POWER_M = 200
 MAX_DISTANCE_TO_ROAD_M = 100
@@ -21,19 +22,52 @@ MIN_DISTANCE_FROM_EXISTING_STATION_M = 1000
 overpass_url = "https://overpass-api.de/api/interpreter"
 ocm_api_url = "https://api.openchargemap.io/v3/poi/"
 
+# Rate limiting
+last_request_time = 0
+MIN_REQUEST_INTERVAL = 1.0  # 1 second between requests
 
 async def run_async_query(client: httpx.AsyncClient, query: str, name: str):
-    """Helper to run a single async Overpass query."""
-    try:
-        print(f"  -> Starting query for: {name}")
-        response = await client.post(overpass_url, data={"data": query}, timeout=120.0)
-        response.raise_for_status()
-        print(f"  <- Finished query for: {name}")
-        return response.json().get("elements", [])
-    except httpx.RequestError as e:
-        print(f"  !! FAILED query for: {name} - {e}")
-        # Return an empty list on failure so other queries can proceed
-        return []
+    """Helper to run a single async Overpass query with rate limiting and retry."""
+    global last_request_time
+    
+    # Rate limiting
+    current_time = time.time()
+    time_since_last = current_time - last_request_time
+    if time_since_last < MIN_REQUEST_INTERVAL:
+        await asyncio.sleep(MIN_REQUEST_INTERVAL - time_since_last)
+    
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            print(f"  -> Starting query for: {name} (attempt {attempt + 1})")
+            last_request_time = time.time()
+            response = await client.post(overpass_url, data={"data": query}, timeout=120.0)
+            
+            if response.status_code == 429:
+                wait_time = (attempt + 1) * 2  # Exponential backoff: 2s, 4s, 6s
+                print(f"  !! Rate limited for: {name}, waiting {wait_time}s...")
+                await asyncio.sleep(wait_time)
+                continue
+                
+            response.raise_for_status()
+            print(f"  <- Finished query for: {name}")
+            return response.json().get("elements", [])
+            
+        except httpx.HTTPStatusError as e:
+            if e.response.status_code == 429 and attempt < max_retries - 1:
+                wait_time = (attempt + 1) * 2
+                print(f"  !! Rate limited for: {name}, waiting {wait_time}s...")
+                await asyncio.sleep(wait_time)
+                continue
+            else:
+                print(f"  !! FAILED query for: {name} - {e}")
+                return []
+        except httpx.RequestError as e:
+            print(f"  !! FAILED query for: {name} - {e}")
+            return []
+    
+    print(f"  !! FAILED query for: {name} after {max_retries} attempts")
+    return []
 
 
 async def analyze_locations(center_lat: float, center_lon: float, api_key: str) -> List[Dict]:
@@ -48,21 +82,21 @@ async def analyze_locations(center_lat: float, center_lon: float, api_key: str) 
     power_query = f"""[out:json][timeout:60];(node(around:{SEARCH_RADIUS_M},{center_lat},{center_lon})["power"~"substation|transformer"];way(around:{SEARCH_RADIUS_M},{center_lat},{center_lon})["power"~"substation"];);out center;"""
     major_roads_query = f"""[out:json][timeout:60];way(around:{SEARCH_RADIUS_M},{center_lat},{center_lon})["highway"~"primary|secondary|tertiary|trunk"];out body;>;out skel qt;"""
 
-    # --- 2. Run all Overpass queries in PARALLEL ---
+    # --- 2. Run all Overpass queries SEQUENTIALLY to avoid rate limiting ---
     async with httpx.AsyncClient() as client:
-        # Create a list of tasks to run
-        tasks = [
-            run_async_query(client, free_spaces_query, "Spaces"),
-            run_async_query(client, poi_query, "POIs"),
-            run_async_query(client, power_query, "Power"),
-            run_async_query(client, major_roads_query, "Roads"),
-        ]
-        # asyncio.gather runs them all concurrently and waits for them all to complete
-        results = await asyncio.gather(*tasks)
+        # Run queries sequentially instead of in parallel to avoid rate limiting
+        print("-> Running queries sequentially to avoid rate limiting...")
+        spaces_elements = await run_async_query(client, free_spaces_query, "Spaces")
+        await asyncio.sleep(1)  # Wait between requests
+        
+        poi_elements = await run_async_query(client, poi_query, "POIs")
+        await asyncio.sleep(1)  # Wait between requests
+        
+        power_elements = await run_async_query(client, power_query, "Power")
+        await asyncio.sleep(1)  # Wait between requests
+        
+        road_elements = await run_async_query(client, major_roads_query, "Roads")
 
-    # Unpack the results
-    spaces_elements, poi_elements, power_elements, road_elements = results
-    
     print(f"-> All Overpass queries complete. Spaces:{len(spaces_elements)}, POIs:{len(poi_elements)}, Power:{len(power_elements)}, Roads:{len(road_elements)}")
     
     # --- 3. Fetch OCM data (can also be run in parallel, but it's fast anyway) ---

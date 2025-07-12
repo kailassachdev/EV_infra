@@ -409,9 +409,9 @@ export default function SimpleEVChargerFinder() {
         <p className="text-gray-600">Click anywhere on the map to find nearby charging stations and analyze potential sites</p>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div className="lg:col-span-2">
-          <Card>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+        <div className="lg:col-span-3">
+          <Card className="h-full">
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">Map</CardTitle>
@@ -424,11 +424,11 @@ export default function SimpleEVChargerFinder() {
                 </button>
               </div>
             </CardHeader>
-            <CardContent className="p-0">
-              <div className="relative">
+            <CardContent className="p-0 flex-1">
+              <div className="relative h-full">
                 <div
                   ref={mapContainerRef}
-                  className="h-[500px] w-full cursor-crosshair"
+                  className="h-[600px] w-full cursor-crosshair"
                 />
                 {(isLoading || isAnalyzing) && (
                   <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
@@ -448,15 +448,15 @@ export default function SimpleEVChargerFinder() {
           </Card>
         </div>
 
-        <div className="space-y-4">
-          <Card>
+        <div className="lg:col-span-1">
+          <Card className="h-full">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Target className="h-5 w-5" />
                 Site Analysis
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex-1 overflow-y-auto">
               {analysisError && (
                 <div className="text-center text-red-600 p-4">
                   <p className="font-medium">Analysis unavailable</p>

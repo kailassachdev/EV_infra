@@ -263,8 +263,14 @@ async def find_ev_locations(
     if not settings.is_configured:
         raise HTTPException(status_code=500, detail="Server is not configured with a valid OpenChargeMap API key.")
     try:
+        print(f"Starting analysis for lat={latitude}, lon={longitude}")
         all_candidates = await analyze_locations(latitude, longitude, settings.OCM_API_KEY)
+        print(f"Analysis completed successfully, found {len(all_candidates)} candidates")
     except Exception as e:
+        import traceback
+        print(f"ERROR in /find-locations: {e}")
+        print("Full traceback:")
+        traceback.print_exc()
         raise HTTPException(status_code=503, detail=f"An error occurred during analysis: {e}")
     results = []
     for i, candidate in enumerate(all_candidates[:3]):

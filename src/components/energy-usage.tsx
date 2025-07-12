@@ -310,7 +310,7 @@ export default function EnergyUsage() {
                   <div className="text-4xl font-bold text-gray-900 mb-2">
                     {carbonData?.carbon_intensity}
                   </div>
-                  <p className="text-sm text-gray-500 mb-4">kg CO₂e</p>
+                  <p className="text-sm text-gray-500 mb-4">g CO₂e/kWh</p>
                   <Badge
                     variant="outline"
                     className={

@@ -417,7 +417,7 @@ export default function EnergyUsage() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Zap className="w-5 h-5 text-purple-600" />
-                    <CardTitle className="text-lg">Energy Analysis</CardTitle>
+                    <CardTitle className="text-lg">CO2 Emissions</CardTitle>
                   </div>
                   <Select value={timeframe} onValueChange={(value: 'monthly' | 'yearly') => setTimeframe(value)}>
                     <SelectTrigger className="w-28">

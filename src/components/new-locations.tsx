@@ -405,7 +405,7 @@ export default function SimpleEVChargerFinder() {
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-4">
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">⚡ EV Charging Stations & Site Analysis</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">EV Charging Stations & Site Analysis</h1>
         <p className="text-gray-600">Click anywhere on the map to find nearby charging stations and analyze potential sites</p>
       </div>
 
@@ -479,51 +479,51 @@ export default function SimpleEVChargerFinder() {
               )}
 
               {siteAnalysis.length > 0 && (
-                <div className="space-y-3">
+                <div className="space-y-2">
                   {siteAnalysis.map((site) => (
-                    <div key={site.rank} className="p-3 border rounded-lg bg-purple-50 border-purple-200">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <div className="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
+                    <div key={site.rank} className="p-2 border rounded-lg bg-purple-50 border-purple-200">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-1">
+                          <div className="w-4 h-4 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
                             {site.rank}
                           </div>
-                          <span className="text-sm font-medium text-gray-900">
+                          <span className="text-xs font-medium text-gray-900">
                             {site.site_type.replace(/[_=]/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                           </span>
                         </div>
                       </div>
                       
-                      <div className="space-y-1 text-xs text-gray-600">
+                      <div className="space-y-0.5 text-xs text-gray-600">
                         <div className="flex justify-between">
                           <span>Area:</span>
                           <span>{site.area_m2}m²</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>POI Score:</span>
+                          <span>POI:</span>
                           <span>{site.score_nearby_pois}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Market Gap:</span>
+                          <span>Gap:</span>
                           <span>{site.market_gap_m}m</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Road Access:</span>
+                          <span>Road:</span>
                           <span>{site.access_to_road_m}m</span>
                         </div>
                         <div className="flex justify-between">
-                          <span>Power Access:</span>
+                          <span>Power:</span>
                           <span>{site.access_to_power_m}m</span>
                         </div>
                       </div>
                       
-                      <div className="mt-2">
+                      <div className="mt-1">
                         <a 
                           href={site.google_maps_url} 
                           target="_blank" 
                           rel="noopener noreferrer"
                           className="text-xs text-blue-600 hover:text-blue-800"
                         >
-                          View on Google Maps →
+                          View on Maps →
                         </a>
                       </div>
                     </div>

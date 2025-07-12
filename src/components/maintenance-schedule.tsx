@@ -17,6 +17,13 @@ export default function MaintenanceSchedule() {
   const [error, setError] = useState<string | null>(null);
   const [checked, setChecked] = useState<number | null>(null);
 
+  // Generate random station IDs
+  const generateRandomStationId = () => {
+    const prefix = ['EV', 'CH', 'ST', 'CS'][Math.floor(Math.random() * 4)];
+    const number = Math.floor(Math.random() * 999) + 1;
+    return `${prefix}-${String(number).padStart(3, '0')}`;
+  };
+
   useEffect(() => {
     const fetchStations = async () => {
       setLoading(true);
@@ -168,12 +175,12 @@ export default function MaintenanceSchedule() {
                       stations.map((item, idx) => (
                         <tr 
                           key={idx} 
-                          className={`border-b hover:bg-gray-50 transition-colors ${
-                            item.needs_maintenance ? "bg-red-50 border-l-4 border-red-500" : ""
+                          className={`hover:bg-gray-50 transition-colors ${
+                            item.needs_maintenance ? "bg-red-50 border-l-4 border-red-500" : "border-b"
                           }`}
                         >
                           <td className="p-3 font-mono font-medium">
-                            EV-{String(idx + 1).padStart(3, '0')}
+                            {generateRandomStationId()}
                           </td>
                           <td className="p-3 font-medium">
                             {item.El_kWh}

@@ -139,14 +139,14 @@ async def predict_for_station(lat, lon):
         "IMPORTANT: Respond with valid JSON only in this format:\n" +
         "{\n" +
         '  "needs_maintenance": true/false,\n' +
-        '  "reason": "One line explanation (required if needs_maintenance is true)",\n' +
+        '  "reason": "Brief, varied reason (max 50 chars). Use different styles: "Low efficiency detected", "Connection issues", "Performance degradation", "Component wear", etc.",\n' +
         '  "estimated_life_months": If needs_maintenance is true, provide your best estimate (as an integer) of how many months the station can continue to operate before critical failure, based on the provided data. If not, use null.\n' +
         "}"
     )
     response = client.chat.completions.create(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": full_prompt}],
-        temperature=0.3
+        temperature=0.7
     )
     raw_answer = response.choices[0].message.content
     maintenance = safe_parse_json_maintenance_response(raw_answer)

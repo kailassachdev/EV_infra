@@ -460,7 +460,14 @@ export default function SimpleEVChargerFinder() {
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 overflow-y-auto">
-              {analysisError && (
+              {isAnalyzing && (
+                <div className="text-center p-6">
+                  <div className="animate-spin rounded-full h-8 w-8 border-2 border-purple-500 border-t-transparent mx-auto mb-3"></div>
+                  <p className="text-sm text-gray-600">Analyzing potential sites...</p>
+                </div>
+              )}
+
+              {analysisError && !isAnalyzing && (
                 <div className="text-center text-red-600 p-4">
                   <p className="font-medium">Analysis unavailable</p>
                   <p className="text-sm">{analysisError}</p>
@@ -481,7 +488,7 @@ export default function SimpleEVChargerFinder() {
                 </div>
               )}
 
-              {siteAnalysis.length > 0 && (
+              {!isAnalyzing && siteAnalysis.length > 0 && (
                 <div className="space-y-2">
                   {siteAnalysis.map((site) => (
                     <div key={site.rank} className="p-2 border rounded-lg bg-purple-50 border-purple-200">

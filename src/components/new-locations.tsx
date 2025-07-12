@@ -301,7 +301,8 @@ export default function SimpleEVChargerFinder() {
 
   useEffect(() => {
     if (mapContainerRef.current && !mapRef.current) {
-      mapRef.current = L.map(mapContainerRef.current).setView([8.5241, 76.9366], 12);
+      // Set default location to CUSAT (Cochin University of Science and Technology)
+      mapRef.current = L.map(mapContainerRef.current).setView([10.0458, 76.3188], 13);
 
       L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
         attribution: '© OpenStreetMap contributors',
@@ -398,15 +399,17 @@ export default function SimpleEVChargerFinder() {
     setError(null);
     setAnalysisError(null);
     if (mapRef.current) {
-      mapRef.current.setView([8.5241, 76.9366], 12);
+      // Reset to CUSAT location
+      mapRef.current.setView([10.0458, 76.3188], 13);
     }
   };
 
   return (
     <div className="max-w-7xl mx-auto p-4 space-y-4">
       <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">EV Charging Stations & Site Analysis</h1>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">⚡ EV Charging Stations & Site Analysis</h1>
         <p className="text-gray-600">Click anywhere on the map to find nearby charging stations and analyze potential sites</p>
+        <p className="text-sm text-blue-600 mt-1">Default location: CUSAT, Kochi</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">

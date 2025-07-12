@@ -21,8 +21,6 @@ import Papa from "papaparse";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Zap, TrendingUp, Leaf, DollarSign, Activity } from "lucide-react";
 
-import { getEnergyMixData } from "@/services/gemini";
-
 interface MonthlyData {
   date: string;
   renewableCO2: number;
@@ -55,18 +53,18 @@ interface EnergyMixData {
 }
 
 const energyData = [
-  { name: "Solar", value: 45, color: "#facc15" },
-  { name: "Wind", value: 30, color: "#3b82f6" },
-  { name: "Hydro", value: 15, color: "#06b6d4" },
-  { name: "Geothermal", value: 10, color: "#f97316" },
+  { name: "Hydro", value: 15.5, color: "#06b6d4" },
+  { name: "Solar", value: 18.85, color: "#facc15" },
+  { name: "Wind", value: 12, color: "#3b82f6" },
+  { name: "Coal", value: 53.65, color: "#6b7280" },
 ];
 
 const chartConfig = {
   value: { label: "Energy %" },
+  hydro: { label: "Hydro", color: "#06b6d4" },
   solar: { label: "Solar", color: "#facc15" },
   wind: { label: "Wind", color: "#3b82f6" },
-  hydro: { label: "Hydro", color: "#06b6d4" },
-  geothermal: { label: "Geothermal", color: "#f97316" },
+  coal: { label: "Coal", color: "#6b7280" },
 } satisfies ChartConfig;
 
 const consumptionData = [
@@ -92,10 +90,10 @@ const consumptionChartConfig = {
 } satisfies ChartConfig;
 
 const COLORS = {
+  Hydro: "#06b6d4",
   Solar: "#facc15",
   Wind: "#3b82f6", 
-  Hydro: "#06b6d4",
-  Geothermal: "#f97316"
+  Coal: "#6b7280"
 };
 
 const renderActiveShape = (props: any) => {
@@ -126,7 +124,7 @@ const renderActiveShape = (props: any) => {
 export default function EnergyUsage() {
   const [activeIndex, setActiveIndex] = useState(0);
   const [carbonData, setCarbonData] = useState<CarbonIntensityData | null>(null);
-  const [energyMixData, setEnergyMixData] = useState<EnergyMixData[]>([]);
+  const [energyMixData, setEnergyMixData] = useState<EnergyMixData[]>(energyData);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [monthlyData, setMonthlyData] = useState<MonthlyData[]>([]);
@@ -157,10 +155,7 @@ export default function EnergyUsage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [carbonResponse, mixData] = await Promise.all([
-          fetch(`${BASE_URL}/carbon-intensity`),
-          getEnergyMixData()
-        ]);
+        const carbonResponse = await fetch(`${BASE_URL}/carbon-intensity`);
 
         if (!carbonResponse.ok) {
           throw new Error('Failed to fetch carbon intensity data');
@@ -169,13 +164,11 @@ export default function EnergyUsage() {
         const carbonData = await carbonResponse.json();
         setCarbonData(carbonData);
         
-        if (Array.isArray(mixData) && mixData.length > 0) {
-          setEnergyMixData(mixData);
-        } else {
-          setEnergyMixData(energyData);
-        }
+        // Always use hardcoded energy mix data
+        setEnergyMixData(energyData);
         setIsLoading(false);
       } catch (err) {
+        console.log('Error fetching carbon data, using default energy mix');
         setEnergyMixData(energyData);
         setError(err instanceof Error ? err.message : 'An error occurred');
         setIsLoading(false);
